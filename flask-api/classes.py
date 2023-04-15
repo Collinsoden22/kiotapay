@@ -19,27 +19,32 @@ class HomeEndpoint(Resource):
         }
 
 
+# Accepts post() and get() requests to save and return user data
 class UserEndpoint(Resource):
-    # Accepts post() and get() requests to save and return user data
 
     def get(self, user_id):
-        # Get User Information from DB.
-        try:
-            cur.execute("SELECT * FROM users WHERE users.id = %s;", (user_id, ))
-            userDetails = cur.fetchone()
+        self.cur, self.conn = cur, conn
 
-            print(userDetails)
-            # Close connections
-            cur.close()
-            conn.close()
+        try:
+            # Get User Information from DB.
+            self.cur.execute(
+                "SELECT * FROM users WHERE users.id = %s;", (user_id, ))
+            userDetails = self.cur.fetchone()
+
         except Exception as e:
             return {
-                "message": "We could not process your request"
+                "message": "We could not process your request",
+                "error": str(e)
             }, 500
 
+        # Close connections
+        cur.close()
+        conn.close()
         # End Process if user does not exist
         if userDetails == None:
-            return {'message': 'We could not find the requested information, enter a valid ID'}
+            return {
+                "message": f"We could not find the requested information, enter a valid ID: {user_id}"
+            }, 404
 
         return {
             "data": {
@@ -56,18 +61,32 @@ class UserEndpoint(Resource):
 
         if request.method == 'POST':
             user_post_args = reqparse.RequestParser()
-            user_post_args.add_argument("email", type=str, help="Email address is required", location="json", required=True)
-            user_post_args.add_argument("fullname", type=str, help="Full Name is required", location="json", required=True)
-            user_post_args.add_argument("gender", type=str, help="Gender is required", location="json", required=True)
-            user_post_args.add_argument("age", type=int, help="Age is required", location="json", required=True)
+            user_post_args.add_argument(
+                "email", type=str, help="Email address is required", location="json", required=True)
+            user_post_args.add_argument(
+                "fullname", type=str, help="Full Name is required", location="json", required=True)
+            user_post_args.add_argument(
+                "gender", type=str, help="Gender is required", location="json", required=True)
+            user_post_args.add_argument(
+                "age", type=int, help="Age is required", location="json", required=True)
 
             args = user_post_args.parse_args()
             status = 'Active'
+            try:
+                insert_user = "INSERT INTO users (username, fullname, gender, age, status) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
+                cur.execute(
+                    insert_user, (args['email'], args['fullname'], args['gender'], args['age'], status, ))
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                return {
+                    "data": {
+                        "message": "We could not complete your request",
+                        "error": str(e)
+                    }
+                }, 500
 
-            print(args['fullname'])
-            cur.execute("""INSERT INTO users (username, fullname, gender, age, status) VALUES (%s, %s, %s, %s, %s) RETURNING id;""", (args['email'], args['fullname'], args['gender'], args['age'], status))
             last_insert_id = cur.fetchone()[0]
-            print(last_insert_id)
 
             cur.close()
             conn.close()
@@ -76,9 +95,8 @@ class UserEndpoint(Resource):
             return {
                 "data": {
                     "message": "This Endpoint only recieves post request",
-                    "user_link": "/api/v1/user/" # + user_id,
                 }
-        }, 300
+            }, 300
         # Return Success Message if this information is saved, else "Error"
         return {
             "data": {
@@ -87,19 +105,30 @@ class UserEndpoint(Resource):
             }
         }, 201
 
+
 class TodoEndpoint(Resource):
     # Accepts post() and get() requests to save and return user data
 
     def get(self, todo_id):
-        # Get User Information from DB.
-    # Get User Information from DB.
-        cur.execute(f"SELECT * FROM todos WHERE todos.id = {todo_id}")
-        Todo = cur.fetchone()
+        self.cur, self.conn = cur, conn
+       # Get User Information from DB.
+       # Get User Information from DB.
+        try:
+            # Get User Information from DB.
+            self.cur.execute(
+                "SELECT * FROM todos WHERE todos.id = %s;", (todo_id, ))
+            Todo = self.cur.fetchone()
+
+        except Exception as e:
+            return {
+                "message": "We could not process your request",
+                "error": str(e)
+            }, 500
 
         # Close connections
         cur.close()
         conn.close()
-        # End Process if user does not exist
+
         if Todo == None:
             abort("We could not find the requested information, enter a valid ID")
 
@@ -109,24 +138,36 @@ class TodoEndpoint(Resource):
                 "email": Todo[1],
                 "task": Todo[2],
                 "status": Todo[3],
-                "date_created": Todo[4]
+                # "date_created": Todo[4]
             }
         }, 201
 
-
-    def post(self, user_email):
+    def post(self):
 
         if request.method == 'POST':
             todo_post_args = reqparse.RequestParser()
-            todo_post_args.add_argument("email", type=str, help="Email address is required", location="json", required=True)
-            todo_post_args.add_argument("task", type=str, help="Task is required", location="json", required=True)
+            todo_post_args.add_argument(
+                "email", type=str, help="Email address is required", location="json", required=True)
+            todo_post_args.add_argument(
+                "task", type=str, help="Task is required", location="json", required=True)
 
             args = todo_post_args.parse_args()
             status = 'Pending'
-            last_insert_id = cur.execute("""INSERT INTO todos (username, task, status) VALUES (%s, %s, %s) RETURNING id;""", (args['email'], args['task'], status))
+            try:
+                cur.execute(
+                    "INSERT INTO todos (username, task, status) VALUES (%s, %s, %s) RETURNING id;", (args['email'], args['task'], status))
 
-            print(last_insert_id)
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                return {
+                    "data": {
+                        "message": "We could not save todo data",
+                        "error": str(e)
+                    }
+                }, 500
 
+            last_insert_id = cur.fetchone()[0]
             cur.close()
             conn.close()
 
@@ -136,11 +177,11 @@ class TodoEndpoint(Resource):
                     "message": "This Endpoint only recieves post request",
                     "user_link": "/api/v1/todos/0"
                 }
-        }, 300
+            }, 300
         # Return Success Message if this information is saved, else "Error"
         return {
             "data": {
                 "message": "Todo Created",
-                "user_link": f"/api/v1/todos/{last_insert_id}",
+                "user_link": "/api/v1/todos/" + str(last_insert_id)
             }
         }, 201

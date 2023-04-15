@@ -1,15 +1,22 @@
 import os
 import psycopg2
+from dotenv import load_dotenv
+
+load_dotenv()
+
+url = os.environ['DATABASE_URL']
 
 def connect_db():
-        conn = psycopg2.connect(host="localhost",
-                        database="flask_api",
-                        user="api_user",
-                        password="API_Password"
+    conn = psycopg2.connect(url)
+    return conn
+    #               host="localhost",
+    #                 database="flask_api",
+    #                 user="api_user",
+    #                 password="API_Password"
                         # user=os.environ['DB_USERNAME'],
                         # password=os.environ['DB_PASSWORD'])
-                )
-        return conn
+    # )
+
 
 
 def create_tables():
@@ -17,8 +24,8 @@ def create_tables():
         cur = conn.cursor()
 
         # Create User table
-        # cur.execute('DROP TABLE IF EXISTS users')
-        cur.execute('CREATE TABLE IF NOT EXISTS users (id serial PRIMARY KEY,'
+        cur.execute('DROP TABLE IF EXISTS users')
+        cur.execute('CREATE TABLE IF NOT EXISTS users (id serial UNIQUE PRIMARY KEY,'
                                         'username varchar (150) NOT NULL UNIQUE,'
                                         'fullname varchar (50) NOT NULL,'
                                         'gender varchar (10) NOT NULL,'
@@ -28,7 +35,7 @@ def create_tables():
                                         )
 
         # Create todo table
-        # cur.execute('DROP TABLE IF EXISTS todos')
+        cur.execute('DROP TABLE IF EXISTS todos')
         cur.execute('CREATE TABLE IF NOT EXISTS todos (id serial PRIMARY KEY,'
                                         'username varchar (150) NOT NULL,'
                                         'task varchar (50) NOT NULL,'
@@ -43,5 +50,6 @@ def create_tables():
         conn.close()
 
         return True
+
 
 # create_tables()
