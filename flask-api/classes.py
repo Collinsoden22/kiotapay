@@ -18,7 +18,6 @@ class HomeEndpoint(Resource):
             }
         }
 
-
 # Accepts post() and get() requests to save and return user data
 class UserEndpoint(Resource):
 
