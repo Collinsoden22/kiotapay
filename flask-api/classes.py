@@ -24,15 +24,22 @@ class UserEndpoint(Resource):
 
     def get(self, user_id):
         # Get User Information from DB.
-        cur.execute(f"SELECT * FROM users WHERE users.id = {user_id}")
-        userDetails = cur.fetchone()
+        try:
+            cur.execute("SELECT * FROM users WHERE users.id = %s;", (user_id, ))
+            userDetails = cur.fetchone()
 
-        # Close connections
-        cur.close()
-        conn.close()
+            print(userDetails)
+            # Close connections
+            cur.close()
+            conn.close()
+        except Exception as e:
+            return {
+                "message": "We could not process your request"
+            }, 500
+
         # End Process if user does not exist
         if userDetails == None:
-            abort("We could not find the requested information, enter a valid ID")
+            return {'message': 'We could not find the requested information, enter a valid ID'}
 
         return {
             "data": {
@@ -45,7 +52,7 @@ class UserEndpoint(Resource):
             }
         }, 201
 
-    def post(self, user_id):
+    def post(self):
 
         if request.method == 'POST':
             user_post_args = reqparse.RequestParser()
@@ -56,28 +63,10 @@ class UserEndpoint(Resource):
 
             args = user_post_args.parse_args()
             status = 'Active'
-            user_email = args['email']
-            cur.execute("""(SELECT * FROM users WHERE users.id = %s);""", user_email)
-            userDetails = cur.fetchone()
-            try:
-                if userDetails != None:
-                    cur.close()
-                    conn.close()
 
-                    return {
-                        "data": {
-                                "message": "A user already exists with this email",
-                            }
-                    }, 409
-            except Exception as e:
-                    return {
-                        "data": {
-                                "message": e,
-                            }
-                    }, 500
-
-            last_insert_id = cur.execute("""INSERT INTO users (username, fullname, gender, age, status) VALUES (%s, %s, %s, %s, %s) RETURNING id;""", (args['email'], args['fullname'], args['gender'], args['age'], status))
-
+            print(args['fullname'])
+            cur.execute("""INSERT INTO users (username, fullname, gender, age, status) VALUES (%s, %s, %s, %s, %s) RETURNING id;""", (args['email'], args['fullname'], args['gender'], args['age'], status))
+            last_insert_id = cur.fetchone()[0]
             print(last_insert_id)
 
             cur.close()
@@ -155,18 +144,3 @@ class TodoEndpoint(Resource):
                 "user_link": f"/api/v1/todos/{last_insert_id}",
             }
         }, 201
-
-class EditUserEndpoint(Resource):
-# Accepts only post() requests to edit user data
-    def post(self, user_email):
-        # Edit User Information from DB matching specified email.
-        return {
-            "data":
-            {
-                "message": "Retrieved User Details for {user_email}",
-                "username": user_email,
-                "fullname": "Collins Oden",
-                "gender": "Male",
-                "age": "32"
-            }
-        }

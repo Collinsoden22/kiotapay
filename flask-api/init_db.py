@@ -19,7 +19,7 @@ def create_tables():
         # Create User table
         # cur.execute('DROP TABLE IF EXISTS users')
         cur.execute('CREATE TABLE IF NOT EXISTS users (id serial PRIMARY KEY,'
-                                        'username varchar (150) NOT NULL,'
+                                        'username varchar (150) NOT NULL UNIQUE,'
                                         'fullname varchar (50) NOT NULL,'
                                         'gender varchar (10) NOT NULL,'
                                         'age integer NOT NULL,'
@@ -41,3 +41,7 @@ def create_tables():
 
         cur.close()
         conn.close()
+
+        return True
+
+# create_tables()
