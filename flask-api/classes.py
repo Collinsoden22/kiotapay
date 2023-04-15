@@ -19,6 +19,8 @@ class HomeEndpoint(Resource):
         }
 
 # Accepts post() and get() requests to save and return user data
+
+
 class UserEndpoint(Resource):
 
     def get(self, user_id):
@@ -105,15 +107,14 @@ class UserEndpoint(Resource):
         }, 201
 
 
+# Accepts post() and get() requests to save and return user data
 class TodoEndpoint(Resource):
-    # Accepts post() and get() requests to save and return user data
 
     def get(self, todo_id):
         self.cur, self.conn = cur, conn
-       # Get User Information from DB.
-       # Get User Information from DB.
+
         try:
-            # Get User Information from DB.
+            # Get Todo with ID from DB.
             self.cur.execute(
                 "SELECT * FROM todos WHERE todos.id = %s;", (todo_id, ))
             Todo = self.cur.fetchone()
@@ -182,5 +183,43 @@ class TodoEndpoint(Resource):
             "data": {
                 "message": "Todo Created",
                 "user_link": "/api/v1/todos/" + str(last_insert_id)
+            }
+        }, 201
+
+
+class FetchAllTodoEndpoint(Resource):
+
+    def get(self, user):
+        self.cur, self.conn = cur, conn
+        if '@' and '.com' not in user:
+            return {
+                "message": "Invalid email entered, please enter a valid email"
+            }
+        try:
+            # Get Todo with ID from DB.
+            self.cur.execute(
+                "SELECT task,status FROM todos WHERE todos.username = %s;", (user, ))
+            Todos = self.cur.fetchall()
+
+        except Exception as e:
+            return {
+                "message": "We could not process your request",
+                "error": str(e)
+            }, 500
+
+        # Close connections
+        cur.close()
+        conn.close()
+
+        print(Todos)
+        if Todos == None or not Todos:
+            return {
+                "message": "No task found for the specified user."
+            }
+
+        return {
+            "data": {
+                "message": f"Tasks for `{user}` retrieved",
+                "content": Todos
             }
         }, 201
