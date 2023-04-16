@@ -1,18 +1,25 @@
-import React, {useState } from 'react'
+import React, {useState, useEffect, useRef } from 'react'
 
-function TodoForm(props) {
+function TodoForm(props, initialState) {
     const [input, setInput] = useState("");
+
+    const thisRef = useRef(null)
+
+    useEffect(() =>{
+      thisRef.current.focus()
+    })
 
     const manageChange = e => {
       setInput(e.target.value);
   }
+
     const handleFormSubmit = e =>{
         e.preventDefault();
 
       props.onSubmit({
         id: new Date().toISOString().split(".")[0].replace(/[^\d]/gi,''),
         text: input,
-        status: "Undone"
+        completed: false
       });
     }
 
@@ -26,9 +33,11 @@ function TodoForm(props) {
           name="text"
           className="form-control"
             onChange={manageChange}
+            ref={thisRef}
           />
           <button className="btn btn-bg-primary m-1 float-end mt-2">Add</button>
-          </form>
+        </form>
+
     </div>
   )
 }

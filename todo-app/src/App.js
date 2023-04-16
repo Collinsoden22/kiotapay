@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="Todo-App">
       <header className="App-header">
-        <img src={process.env.PUBLIC_URL + '/logo.png'} width="70vw" className='float-start' alt="Logo"/>
+        <img src={process.env.PUBLIC_URL + '/logo.png'} width="100vw" className='float-start' alt="Logo"/>
             <h1 className="App-title"> Todo App</h1>
       </header>
       <TodoList />
