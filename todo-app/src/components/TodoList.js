@@ -1,8 +1,9 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import TodoForm from "./TodoForm";
 import Todo from './Todo';
 
 function TodoList() {
+
     const [todos, setTodos] = useState([]);
 
     const addTodo = todo => {
@@ -10,22 +11,38 @@ function TodoList() {
         if(!todo.text || /^\s*$/.test(todo.text)){
             return
         }
-        const newTodos = [todo, ...todos]
+        const newTodos = [todo, ...todos];
 
-        setTodos(newTodos)
+        setTodos(newTodos);
 
+    }
+
+    const removeTodo = id => {
+        const filteredTodo = [...todos].filter(todo => todo.id !== id)
+        setTodos(filteredTodo);
     }
 
     const completeTodo = id =>{
         let updatedTodos = todos.map(todo => {
             if (todo.id === id){
-                todo.isComplete = !todo.isComplete
-                todo.id = todo.id * 2
+                todo.isComplete = !todo.isComplete // Change to `true` if !toggle
             }
             return todo
         });
         setTodos(updatedTodos)
     }
+
+    useEffect (() => {
+        localStorage.setItem("todos", JSON.stringify(todos));
+      }, [todos]);
+
+      useEffect(() => {
+        const storedTodos = JSON.parse(localStorage.getItem("todos"));
+        if (storedTodos){
+            setTodos(storedTodos)
+        }
+      }, [todos])
+
   return (
     <div>
         <h3 className="m-5 justify-content-center text-center"> What are we planning today?</h3>
@@ -33,7 +50,8 @@ function TodoList() {
         <div className="justify-contents-center p-5">
             <Todo
             todos={todos}
-            completeTodo={completeTodo} />
+            completeTodo={completeTodo}
+            removeTodo={removeTodo} />
         </div>
 
     </div>
