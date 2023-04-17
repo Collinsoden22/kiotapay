@@ -73,6 +73,7 @@ class UserEndpoint(Resource):
 
             args = user_post_args.parse_args()
             status = 'Active'
+            print(args)
             try:
                 insert_user = "INSERT INTO users (username, fullname, gender, age, status) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
                 cur.execute(

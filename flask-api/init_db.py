@@ -24,7 +24,7 @@ def create_tables():
         cur = conn.cursor()
 
         # Create User table
-        cur.execute('DROP TABLE IF EXISTS users')
+        # cur.execute('DROP TABLE IF EXISTS users')
         cur.execute('CREATE TABLE IF NOT EXISTS users (id serial UNIQUE PRIMARY KEY,'
                                         'username varchar (150) NOT NULL UNIQUE,'
                                         'fullname varchar (50) NOT NULL,'
@@ -35,7 +35,7 @@ def create_tables():
                                         )
 
         # Create todo table
-        cur.execute('DROP TABLE IF EXISTS todos')
+        # cur.execute('DROP TABLE IF EXISTS todos')
         cur.execute('CREATE TABLE IF NOT EXISTS todos (id serial PRIMARY KEY,'
                                         'username varchar (150) NOT NULL,'
                                         'task varchar (50) NOT NULL,'
@@ -52,4 +52,4 @@ def create_tables():
         return True
 
 
-# create_tables()
+create_tables()
