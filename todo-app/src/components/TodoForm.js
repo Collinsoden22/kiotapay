@@ -19,8 +19,9 @@ function TodoForm(props, initialState) {
       props.onSubmit({
         id: new Date().toISOString().split(".")[0].replace(/[^\d]/gi,''),
         text: input,
-        completed: false
-      });
+        completed: false,
+      }, setInput(" ")
+      );
     }
 
   return (
